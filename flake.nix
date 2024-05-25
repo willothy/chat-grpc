@@ -19,6 +19,7 @@
         name = "testchat";
         packages = with pkgs; [
           protobuf
+          buf
 
           fish
         ];
