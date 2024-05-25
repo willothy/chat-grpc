@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package streaming;
+
+import "google/protobuf/empty.proto";
+
+service StreamingService {
+  rpc StreamMessages(stream Message) returns (stream Message);
+}
+
+message Message {
+  oneof payload {
+    string content = 1;
+    google.protobuf.Empty disconnect = 2;
+  }
+}
