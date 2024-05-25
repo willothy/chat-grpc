@@ -24,7 +24,7 @@ pub mod streaming {
     tonic::include_proto!("streaming");
 }
 
-use streaming::streaming_service_client::StreamingServiceClient;
+use streaming::messaging_service_client::MessagingServiceClient;
 use streaming::Message;
 
 #[tokio::main]
@@ -43,8 +43,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Trigger initial render
     render_tx.send(()).await?;
 
-    let mut streaming = StreamingServiceClient::connect("http://[::1]:50051")
-        .await?
+    let mut client = MessagingServiceClient::connect("http://[::1]:50051").await?;
+    let addr = client.get_local_address(()).await?.into_inner().address;
+    let mut streaming = client
         .stream_messages(Request::new(ReceiverStream::new(rx)))
         .await?
         .into_inner();
@@ -61,7 +62,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     Some(Ok(msg)) => {
                         match msg.payload {
                             Some(Payload::Content(content)) => {
-                                messages.write().await.push(format!("Server: {}", content));
+                                messages
+                                    .write()
+                                    .await
+                                    .push(format!("{}: {}", msg.sender, content));
                                 render_tx.send(()).await.map_err(|e| {
                                     format!("Failed to send render signal: {:?}", e)
                                 })?;
@@ -148,6 +152,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             .push(format!("You: {}", Arc::clone(&input).read().await));
 
                         tx.send(Message {
+                            sender: addr.clone(),
                             payload: Some(streaming::message::Payload::Content(
                                 input.write().await.drain(..).collect(),
                             )),
@@ -167,6 +172,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     tokio::spawn(async move {
         tx.send(Message {
+            sender: addr.clone(),
             payload: Some(Payload::Disconnect(())),
         })
         .await?;

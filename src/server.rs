@@ -12,7 +12,7 @@ pub mod streaming {
     tonic::include_proto!("streaming");
 }
 
-use streaming::streaming_service_server::{StreamingService, StreamingServiceServer};
+use streaming::messaging_service_server as grpc_server;
 use streaming::Message;
 
 #[derive(Default)]
@@ -57,11 +57,21 @@ impl MessagingService {
 }
 
 #[async_trait]
-impl StreamingService for MessagingService
+impl grpc_server::MessagingService for MessagingService
 where
     Self: Sync + Send,
 {
     type StreamMessagesStream = ReceiverStream<Result<Message, Status>>;
+
+    async fn get_local_address(
+        &self,
+        request: Request<()>,
+    ) -> Result<Response<streaming::Connected>, Status> {
+        let id = request.remote_addr().expect("client address");
+        Ok(Response::new(streaming::Connected {
+            address: id.port().to_string(),
+        }))
+    }
 
     async fn stream_messages(
         &self,
@@ -112,7 +122,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let streaming_service = MessagingService::default();
 
     Server::builder()
-        .add_service(StreamingServiceServer::new(streaming_service))
+        .add_service(grpc_server::MessagingServiceServer::new(streaming_service))
         .serve(addr)
         .await?;
 

@@ -4,13 +4,20 @@ package streaming;
 
 import "google/protobuf/empty.proto";
 
-service StreamingService {
+service MessagingService {
   rpc StreamMessages(stream Message) returns (stream Message);
+
+  rpc GetLocalAddress(google.protobuf.Empty) returns (Connected);
+}
+
+message Connected {
+  string address = 1;
 }
 
 message Message {
+  string sender = 1;
   oneof payload {
-    string content = 1;
-    google.protobuf.Empty disconnect = 2;
+    string content = 2;
+    google.protobuf.Empty disconnect = 3;
   }
 }
