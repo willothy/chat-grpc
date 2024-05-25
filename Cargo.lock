@@ -201,6 +201,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "chat-grpc"
+version = "0.1.0"
+dependencies = [
+ "crossterm",
+ "dashmap",
+ "prost",
+ "ratatui",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "tonic",
+ "tonic-build",
+]
+
+[[package]]
 name = "compact_str"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1041,21 +1056,6 @@ dependencies = [
  "fastrand",
  "rustix",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "testchat"
-version = "0.1.0"
-dependencies = [
- "crossterm",
- "dashmap",
- "prost",
- "ratatui",
- "tokio",
- "tokio-stream",
- "tokio-util",
- "tonic",
- "tonic-build",
 ]
 
 [[package]]
